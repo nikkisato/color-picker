@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <link rel="stylesheet" href="style.css" />
+    <script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>
+    <title>Document</title>
+  </head>
+
+  <body>
+    <div>
+      <div class="parent" id="color-pallet">
+        <div id="colorpicker" class="container">
+          <input type="color" class="color" />
+          <h3 id="hexcolor">Hex:</h3>
+        </div>
+      </div>
+      <div class="controls mt-md">
+        <h3>Timecode: <span id="timecode"></span></h3>
+        <input
+          id="timeline"
+          class="slider"
+          type="range"
+          min="0"
+          max="30000"
+          value="0"
+        />
+        <button id="keyFrame-button">Make Keyframe</button>
+      </div>
+      <div>
+        <ul id="keyframes">
+          <li class="prototype" id="keyframe-prototype">
+            TimeCode:<span id="tc">30000</span>
+          </li>
+        </ul>
+      </div>
+
+      <button id="exportButton">Export to JSON</button>
+      <br />
+      <!-- <input id="terminal" type="text" /> -->
+      <textarea id="display" id="" cols="80" rows="10"></textarea>
+    </div>
+    <script>
+      function makeShow(_duration, _instructions) {
+        var show = {
+          duration: _duration,
+          instructions: _instructions
+        };
+        return show;
+      }
+
+      function makeKeyFrame(_timeCode) {
+        var inputs = $("#colorpicker input");
+        var keyFrame = {
+          timeCode: _timeCode,
+          instructions: []
+        };
+        inputs.each(function(i, elem) {
+          var light = {
+            index: i,
+            color: elem.value
+          };
+          keyFrame.instructions.push(light);
+        });
+        return keyFrame;
+      }
+      var instructions = [];
+
+      $("#colorpicker")
+        .children(".color")
+        .on("change", function() {
+          $(this)
+            .siblings("h3")
+            .text(this.value);
+        });
+      for (var i = 0; i < 7; i++) {
+        $("#colorpicker")
+          .clone(true)
+          .appendTo("#color-pallet");
+      }
+
+      $("#timeline").on("change", function() {
+        $("#timecode").text(this.value);
+      });
+      function updateKeyframeList(ins) {
+        console.log(ins);
+        $("#keyframe-prototype:not(.prototype)").remove();
+        ins.forEach(function(kf) {
+          var key = $("#keyframe-prototype").clone();
+          key.find("#tc").text(kf.timeCode);
+          key.removeClass("prototype");
+          key.appendTo("#keyframes");
+          kf.instructions.forEach(function(light) {
+            key.append(
+              "<div class='light-swatch' style='background-color:" +
+                light.color +
+                ";'></div>"
+            );
+          });
+        });
+      }
+
+      function addKeyframeTo(keyframe, ins) {
+        var dupe = false;
+        ins.forEach(function(i) {
+          if (i.timeCode == keyframe.timeCode) {
+            i = keyframe;
+            dupe = true;
+            console.log("I REPLACED AND NOW IT LOOKS LIKE THIS::::::");
+          }
+        });
+        console.log(ins);
+        if (!dupe) ins.push(keyframe);
+        updateKeyframeList(ins);
+      }
+      $("#keyFrame-button").on("click", function() {
+        var timeCode = $("#timeline")[0].value;
+        addKeyframeTo(makeKeyFrame(timeCode), instructions);
+      });
+
+      //   $("#exportButton").on("click", function() {
+      //     var show = makeShow(30000, instructions);
+      //     show = JSON.stringify(show);
+      //     console.log(show);
+      //     $("#terminal").text(show);
+      //   });
+
+      $("#exportButton").on("click", function() {
+        var show = makeShow(30000, instructions);
+        show = JSON.stringify(show);
+        console.log(show);
+        $("#display").text(show);
+      });
+    </script>
+  </body>
+</html>
